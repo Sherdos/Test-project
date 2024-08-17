@@ -12,6 +12,8 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
+        fields = ('id', 'email', 'balance')
+        depth = 1
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -21,6 +23,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
-        fields = (
-            # TODO
-        )
+        # fields = (
+        #     # TODO
+        # )
+        fields = '__all__'
+

@@ -71,7 +71,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     )
     def pay(self, request, pk):
         """Покупка доступа к курсу (подписка на курс)."""
-
+        data = []
         # TODO
 
         return Response(

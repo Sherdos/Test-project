@@ -28,8 +28,16 @@ class CustomUser(AbstractUser):
 
 class Balance(models.Model):
     """Модель баланса пользователя."""
-
-    # TODO
+    user = models.OneToOneField(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='balance'
+    )
+    amount = models.PositiveIntegerField(
+        default=1000,
+        verbose_name='бонус'
+    )
 
     class Meta:
         verbose_name = 'Баланс'

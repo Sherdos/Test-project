@@ -53,6 +53,8 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
+        fields = '__all__'
+
 
 
 class CreateGroupSerializer(serializers.ModelSerializer):
@@ -114,7 +116,9 @@ class CourseSerializer(serializers.ModelSerializer):
             'demand_course_percent',
             'students_count',
             'groups_filled_percent',
+            'students',
         )
+        depth = 1
 
 
 class CreateCourseSerializer(serializers.ModelSerializer):
@@ -122,3 +126,5 @@ class CreateCourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
+        fields = '__all__'
+

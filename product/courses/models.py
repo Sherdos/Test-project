@@ -23,8 +23,12 @@ class Course(models.Model):
     students = models.ManyToManyField(
         'users.CustomUser',
         verbose_name='Учиники',
+        blank=True,
     )
-    # TODO
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Активно или нет',
+    )
 
     class Meta:
         verbose_name = 'Курс'
@@ -46,8 +50,12 @@ class Lesson(models.Model):
         max_length=250,
         verbose_name='Ссылка',
     )
-
-    # TODO
+    course = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.CASCADE,
+        related_name='lessons',
+        verbose_name='Курс',
+    )
 
     class Meta:
         verbose_name = 'Урок'
@@ -60,8 +68,16 @@ class Lesson(models.Model):
 
 class Group(models.Model):
     """Модель группы."""
-
-    # TODO
+    title = models.CharField(
+        max_length=250,
+        verbose_name='Название',
+    )
+    course = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.CASCADE,
+        related_name='groups',
+        verbose_name='Курс',
+    )
 
     class Meta:
         verbose_name = 'Группа'
