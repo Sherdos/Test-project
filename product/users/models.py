@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
         ordering = ('-id',)
 
     def __str__(self):
-        return self.get_full_name()
+        return self.email
 
 
 class Balance(models.Model):
@@ -47,9 +47,22 @@ class Balance(models.Model):
 
 class Subscription(models.Model):
     """Модель подписки пользователя на курс."""
-
-    # TODO
-
+    course = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+        verbose_name='Курс'
+    )
+    user = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='subscriptions'
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата покупки'
+    )
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'

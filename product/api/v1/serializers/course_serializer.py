@@ -30,7 +30,6 @@ class CreateLessonSerializer(serializers.ModelSerializer):
         fields = (
             'title',
             'link',
-            'course'
         )
 
 
@@ -43,6 +42,7 @@ class StudentSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'balance',
         )
 
 
@@ -89,7 +89,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_lessons_count(self, obj):
         """Количество уроков в курсе."""
-        # TODO Доп. задание
+        return obj.lessons.count()
 
     def get_students_count(self, obj):
         """Общее количество студентов на курсе."""
@@ -116,9 +116,8 @@ class CourseSerializer(serializers.ModelSerializer):
             'demand_course_percent',
             'students_count',
             'groups_filled_percent',
-            'students',
         )
-        depth = 1
+        
 
 
 class CreateCourseSerializer(serializers.ModelSerializer):

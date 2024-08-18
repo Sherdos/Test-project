@@ -20,11 +20,6 @@ class Course(models.Model):
     price = models.IntegerField(
         verbose_name='Цена',
     )
-    students = models.ManyToManyField(
-        'users.CustomUser',
-        verbose_name='Учиники',
-        blank=True,
-    )
     is_active = models.BooleanField(
         default=True,
         verbose_name='Активно или нет',
@@ -78,6 +73,12 @@ class Group(models.Model):
         related_name='groups',
         verbose_name='Курс',
     )
+    students = models.ManyToManyField(
+        'users.CustomUser',
+        blank=True,
+        verbose_name='Учиники',
+    )
+
 
     class Meta:
         verbose_name = 'Группа'

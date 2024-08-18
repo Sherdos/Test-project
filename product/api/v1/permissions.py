@@ -10,15 +10,27 @@ def make_payment(request):
 
 class IsStudentOrIsAdmin(BasePermission):
     def has_permission(self, request, view):
+        
         if request.method in SAFE_METHODS:
             course_id = view.kwargs.get('course_id')
-            course = Course.objects.get(id=course_id)
-            return request.user.is_staff or request.user in course.students.all()
+            
+            try:
+                course = Course.objects.get(id=course_id)
+            except Course.DoesNotExist:
+                return False
+            
+            has_subscription = Subscription.objects.filter(user=request.user, course=course).exists()
+            return request.user.is_staff or has_subscription
+        
         return request.user.is_staff
 
     def has_object_permission(self, request, view, obj):
+        
         if request.method in SAFE_METHODS:
-            return request.user in obj.course.students.all() or request.user.is_staff
+            has_subscription = Subscription.objects.filter(user=request.user, course=obj.course).exists()
+            
+            return request.user.is_staff or has_subscription
+        
         return request.user.is_staff
 
 class ReadOnlyOrIsAdmin(BasePermission):

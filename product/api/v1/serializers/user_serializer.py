@@ -2,14 +2,20 @@ from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from users.models import Subscription
+from users.models import Subscription, Balance
 
 User = get_user_model()
 
 
+class BalanceSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Balance
+        fields = ('amount',)
+
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей."""
-
+    balance = BalanceSerializer()
     class Meta:
         model = User
         fields = ('id', 'email', 'balance')
@@ -23,8 +29,5 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
-        # fields = (
-        #     # TODO
-        # )
-        fields = '__all__'
+        fields = ('user','course')
 

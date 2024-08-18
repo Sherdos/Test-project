@@ -1,6 +1,36 @@
 
 # Тестовое задание Django/Backend
 
+## Решение задач по "Построение системы для обучения"
+1. Не чего сложного просто моделька
+2. Тут доступ даеться через подписку. Моделька имеет три поля user (кто купил подписку), course (какой курс), created (тут подумал что пригодиться дата покупки чтобы если что нужно будет сделать подписку временной ).
+<details>
+
+class Subscription(models.Model):
+    """Модель подписки пользователя на курс."""
+    course = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+        verbose_name='Курс'
+    )
+    user = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='subscriptions'
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата покупки'
+    )
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        ordering = ('-id',)
+</details>
+
+
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray) ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
 Проект представляет собой площадку для размещения онлайн-курсов с набором уроков. Доступ к урокам предоставляется после покупки курса (подписки). Внутри курса студенты автоматически распределяются по группам.
