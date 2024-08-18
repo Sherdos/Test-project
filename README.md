@@ -1,77 +1,314 @@
 
 # Тестовое задание Django/Backend
-
-## Решение задач по "Построение системы для обучения"
-1. Не чего сложного просто моделька
-2. Тут доступ даеться через подписку. Моделька имеет три поля user (кто купил подписку), course (какой курс), created (тут подумал что пригодиться дата покупки чтобы если что нужно будет сделать подписку временной ).
-<details>
-
-class Subscription(models.Model):
-    """Модель подписки пользователя на курс."""
-    course = models.ForeignKey(
-        'courses.Course',
-        on_delete=models.CASCADE,
-        related_name='subscriptions',
-        verbose_name='Курс'
-    )
-    user = models.ForeignKey(
-        'users.CustomUser',
-        on_delete=models.CASCADE,
-        verbose_name='Пользователь',
-        related_name='subscriptions'
-    )
-    created = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата покупки'
-    )
-    class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        ordering = ('-id',)
-</details>
-
-
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray) ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
-Проект представляет собой площадку для размещения онлайн-курсов с набором уроков. Доступ к урокам предоставляется после покупки курса (подписки). Внутри курса студенты автоматически распределяются по группам.
+## Решение задач по "Построение системы для обучения"
+### 1. Создание сущности продукта
+Модель Course включает в себя поля для автора, названия, даты и времени старта, стоимости, а также поле указываюшее активен ли курс .
+```
+class Course(models.Model):
+    """Модель продукта - курса."""
 
-Перед тем, как приступить к выполнению задания, советуем изучить документацию, которая поможет в выполнении заданий:
+    author = models.CharField(
+        max_length=250,
+        verbose_name='Автор',
+    )
+    title = models.CharField(
+        max_length=250,
+        verbose_name='Название',
+    )
+    start_date = models.DateTimeField(
+        auto_now=False,
+        auto_now_add=False,
+        verbose_name='Дата и время начала курса'
+    )
+    price = models.IntegerField(
+        verbose_name='Цена',
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Активно или нет',
+    )
 
-1. https://docs.djangoproject.com/en/4.2/intro/tutorial01/
-2. https://docs.djangoproject.com/en/4.2/topics/db/models/
-3. https://docs.djangoproject.com/en/4.2/topics/db/queries/
-4. https://docs.djangoproject.com/en/4.2/ref/models/querysets/
-5. https://docs.djangoproject.com/en/4.2/topics/signals/
-6. https://www.django-rest-framework.org/tutorial/quickstart/
-7. https://www.django-rest-framework.org/api-guide/viewsets/
-8. https://www.django-rest-framework.org/api-guide/serializers/
+    class Meta:
+        verbose_name = 'Курс'
+        verbose_name_plural = 'Курсы'
+        ordering = ('-id',)
 
-# Построение системы для обучения
+    def __str__(self):
+        return self.title
+```
 
-Суть задания заключается в проверке знаний построения связей в БД и умении правильно строить запросы без ошибок N+1.
 
-### Построение архитектуры(5 баллов)
+### 2. Определение доступа через подписку
+Модель Subscription
 
-В этом задании у нас есть 4 бизнес-задачи на хранение:
+Моделька имеет три поля user (кто купил подписку), course (какой курс), created (тут подумал что пригодиться дата покупки чтобы если что нужно будет сделать подписку временной ).
+    
+```
+    class Subscription(models.Model):
+        """Модель подписки пользователя на курс."""
+        course = models.ForeignKey(
+            'courses.Course',
+            on_delete=models.CASCADE,
+            related_name='subscriptions',
+            verbose_name='Курс'
+        )
+        user = models.ForeignKey(
+            'users.CustomUser',
+            on_delete=models.CASCADE,
+            verbose_name='Пользователь',
+            related_name='subscriptions'
+        )
+        created = models.DateTimeField(
+            auto_now_add=True,
+            verbose_name='Дата покупки'
+        )
+        class Meta:
+            verbose_name = 'Подписка'
+            verbose_name_plural = 'Подписки'
+            ordering = ('-id',)
 
-1. Создать сущность продукта. У продукта должен быть создатель этого продукта(автор/преподаватель). Название продукта, дата и время старта, стоимость. **(0,5 балла)**
-2. Определить, каким образом мы будем понимать, что у пользователя(клиент/студент) есть доступ к продукту. **(2 балла)**
-3. Создать сущность урока. Урок может принадлежать только одному продукту. В уроке должна быть базовая информация: название, ссылка на видео. **(0,5 балла)**
-4. Создать сущность баланса пользователя. Баланс пользователя не может быть ниже 0, баланс пользователя при создании пользователя равен 1000 бонусов. Бонусы могут начислять только через админку или посредством REST-апи с правами is_staff=True. **(2 балла)**
 
-### Реализация базового сценария оплат (11 баллов)
+```
+    
+### 3. Создание сущности урока
+Модель Lesson
 
-В этом пункте потребуется использовать выполненную вами в прошлом задании архитектуру:
+Модель урока включает поля для названия и ссылки на видео. Урок связан с продуктом через ForeignKey.
+ ```
+    class Lesson(models.Model):
+        """Модель урока."""
+    
+        title = models.CharField(
+            max_length=250,
+            verbose_name='Название',
+        )
+        link = models.URLField(
+            max_length=250,
+            verbose_name='Ссылка',
+        )
+        course = models.ForeignKey(
+            'courses.Course',
+            on_delete=models.CASCADE,
+            related_name='lessons',
+            verbose_name='Курс',
+        )
+    
+        class Meta:
+            verbose_name = 'Урок'
+            verbose_name_plural = 'Уроки'
+            ordering = ('id',)
+    
+        def __str__(self):
+            return self.title
+ 
+ ```
 
-1. Реализовать API на список продуктов, доступных для покупки(доступных к покупке = они еще не куплены пользователем и у них есть флаг доступности), которое бы включало в себя основную информацию о продукте и количество уроков, которые принадлежат продукту. **(2 балла)**
-2. Реализовать API оплаты продукты за бонусы. Назовем его …/pay/ **(3 балла)**
-3. По факту оплаты и списания бонусов с баланса пользователя должен быть открыт доступ к курсу. **(2 балла)**
-4. После того, как доступ к курсу открыт, пользователя необходимо **равномерно** распределить в одну из 10 групп студентов. **(4 балла)**
+### 4. Создание сущности баланса пользователя
+Модель Balance
 
-### Результат выполнения:
+Баланс имеет два поля user (владелец счета), amount (сколько бонусов). Для поля amount использовал PositiveIntegerField чтобы счет не был отрицательным также и указал default чтобы при создании она была ровна 1000. Также создал serializer для отображения баланса и возможности изменение баланса пользователя через REST-апи с правами is_staff=True у пользователя и подключил его в CustomUserSerializer. Баланс создается вместе с пользователем через signals
+    
+```
+    class Balance(models.Model):
+        """Модель баланса пользователя."""
+        user = models.OneToOneField(
+            'users.CustomUser',
+            on_delete=models.CASCADE,
+            verbose_name='Пользователь',
+            related_name='balance'
+        )
+        amount = models.PositiveIntegerField(
+            default=1000,
+            verbose_name='бонус'
+        )
+    
+        class Meta:
+            verbose_name = 'Баланс'
+            verbose_name_plural = 'Балансы'
+            ordering = ('-id',)
 
-1. Выполненная архитектура на базе данных SQLite с использованием Django.
-2. Реализованные API на базе готовой архитектуры.
+    # Serializer
+
+    
+    class BalanceSerializer(serializers.ModelSerializer):
+        
+        class Meta:
+            model = Balance
+            fields = ('amount',)
+    
+    class CustomUserSerializer(UserSerializer):
+        """Сериализатор пользователей."""
+        balance = BalanceSerializer()
+        class Meta:
+            model = User
+            fields = ('id', 'email', 'balance')
+
+    # Signals
+
+    @receiver(post_save, sender=CustomUser)
+    def create_user_balance(sender, instance, created, **kwargs):
+        if created:
+            Balance.objects.create(user=instance)
+
+
+```
+
+## Решение задач по "Реализация базового сценария оплат"
+### 1 Список доступных курсов
+Задание было немного непонятным нужно было написать новый APIView или переделать существующий, но решил переделать get_queryset существуещего CourseViewSet чтобы отображались только активные курсы и те которые еще не приобретены. Данные которые отображаются основные данные и количество уроков ( get_lessons_count() ).
+```
+
+    #  APIView
+     def get_queryset(self):
+        user = self.request.user
+        
+        if self.request.method in SAFE_METHODS:
+            queryset = Course.objects.filter(is_active=True)
+            
+            if user.is_authenticated:
+                queryset = queryset.exclude(subscriptions__user=user)
+                
+        else:
+            queryset = Course.objects.all()
+        return queryset
+
+    # Serializer
+    def get_lessons_count(self, obj):
+        """Количество уроков в курсе."""
+        return obj.lessons.count()
+
+```
+
+### 2 Покупка курса
+Задекорированная функция pay() сперва проводит проверки.
+1. проверка авторизован ли пользователь
+2. проверка существует ли такой курс
+3. проверка не подписан ли пользователь уже на этот курс
+4. проверка достаточно ли средств для покупки
+
+Затем используя транзакций снимают бонусы с баланса пользователя и создается подписка
+```
+    @action(
+        methods=['post'],
+        detail=True,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def pay(self, request, pk):
+        """Покупка доступа к курсу (подписка на курс)."""
+        user = self.request.user
+        
+        # Проверка авторизован ли пользователь
+        if not user.is_authenticated:
+            return Response(
+                data={'error': 'Пользователь не аутентифицирован'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+            
+        # Проверка есть ли курс
+        try:
+            course = Course.objects.get(id=pk)
+        except Course.DoesNotExist:
+            return Response(
+                data={'error':'Курс не найден'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
+        # Проверка, подписан ли пользователь уже на курс
+        if Subscription.objects.filter(course=course, user=user).exists():
+            return Response(
+                data={'error': 'Вы уже подписаны на этот курс'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # проверка достаточно ли средств для покупки
+        if user.balance.amount < course.price:
+            return Response(
+                data={'error':'Недостаточно средств '}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Использование транзакций для обеспечения целостности данных
+        with transaction.atomic():
+            # Уменьшение баланса пользователя
+            user.balance.amount -= course.price
+            user.balance.save()
+        
+            # Создание подписки
+            subscription = Subscription.objects.create(course=course, user=user)
+    
+        serializer = SubscriptionSerializer(subscription)
+
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+```
+### 3 Доступ к курсу 
+Через permissions дается доступ ученикам и админу 
+
+```
+    # Permissions
+     def has_permission(self, request, view):
+        
+        if request.method in SAFE_METHODS:
+            course_id = view.kwargs.get('course_id')
+            
+            try:
+                course = Course.objects.get(id=course_id)
+            except Course.DoesNotExist:
+                return False
+            
+            has_subscription = Subscription.objects.filter(user=request.user, course=course).exists()
+            return request.user.is_staff or has_subscription
+        
+        return request.user.is_staff
+
+    def has_object_permission(self, request, view, obj):
+        
+        if request.method in SAFE_METHODS:
+            has_subscription = Subscription.objects.filter(user=request.user, course=obj.course).exists()
+            
+            return request.user.is_staff or has_subscription
+        
+        return request.user.is_staff
+```
+
+### 4 Расприделение по группам
+После создание курса через signals создаются 10 групп. После оформление подписки также через signals ученика добавляют в одну из 10 групп равномерно.
+```
+    
+    @receiver(post_save, sender=Subscription)
+    def post_save_subscription(sender, instance: Subscription, created, **kwargs):
+        """
+        Распределение нового студента в группу курса.
+    
+        """
+        if created:
+            all_groups = instance.course.groups.all()
+            
+            # Нахождение группы с наименьшим числом студентов
+            group = min(all_groups, key=lambda x: x.students.count())
+            
+            group.students.add(instance.user)
+            
+    
+    
+    
+    @receiver(post_save, sender=Course)
+    def post_save_course(sender, instance: Course, created, **kwargs):
+        """
+        Создание групп для курса.
+    
+        """
+    
+        if created:
+            for i in range(1,11):
+                title = f'Группа №{i} Курс - {instance.title}'
+                Group.objects.create(course=instance, title=title)
+```
+
 
 ### Мы ожидаем:
 
