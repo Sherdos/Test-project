@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
 
 from api.v1.permissions import IsStudentOrIsAdmin, ReadOnlyOrIsAdmin,SAFE_METHODS
-from api.v1.serializers.course_serializer import (CourseSerializer,
+from api.v1.serializers.course_serializer import (AccessCourseSerializer, CourseSerializer,
                                                   CreateCourseSerializer,
                                                   CreateGroupSerializer,
                                                   CreateLessonSerializer,
@@ -56,6 +56,8 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class CourseViewSet(viewsets.ModelViewSet):
     """Курсы """
+    
+    queryset = Course.objects.all()
     permission_classes = (ReadOnlyOrIsAdmin,)
 
     def get_serializer_class(self):
@@ -63,18 +65,6 @@ class CourseViewSet(viewsets.ModelViewSet):
             return CourseSerializer
         return CreateCourseSerializer
     
-    def get_queryset(self):
-        user = self.request.user
-        
-        if self.request.method in SAFE_METHODS:
-            queryset = Course.objects.filter(is_active=True)
-            
-            if user.is_authenticated:
-                queryset = queryset.exclude(subscriptions__user=user)
-                
-        else:
-            queryset = Course.objects.all()
-        return queryset
 
     @action(
         methods=['post'],
@@ -130,3 +120,20 @@ class CourseViewSet(viewsets.ModelViewSet):
             data=serializer.data,
             status=status.HTTP_201_CREATED
         )
+
+class AccessCourseAPIView(generics.ListAPIView):
+    
+    serializer_class = AccessCourseSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        if self.request.method in SAFE_METHODS:
+            queryset = Course.objects.filter(is_active=True)
+            
+            if user.is_authenticated:
+                queryset = queryset.exclude(subscriptions__user=user)
+                
+        else:
+            queryset = Course.objects.all()
+        return queryset

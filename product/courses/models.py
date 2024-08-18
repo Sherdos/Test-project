@@ -84,3 +84,6 @@ class Group(models.Model):
         verbose_name = 'Группа'
         verbose_name_plural = 'Группы'
         ordering = ('-id',)
+        
+    def __str__(self) -> str:
+        return f'{self.title}'

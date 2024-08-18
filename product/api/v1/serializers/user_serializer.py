@@ -18,14 +18,13 @@ class CustomUserSerializer(UserSerializer):
     balance = BalanceSerializer()
     class Meta:
         model = User
-        fields = ('id', 'email', 'balance')
-        depth = 1
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'balance')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор подписки."""
-
-    # TODO
+    course = serializers.StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Subscription

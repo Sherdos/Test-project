@@ -157,7 +157,7 @@ class Course(models.Model):
 
 ## Решение задач по "Реализация базового сценария оплат"
 ### 1 Список доступных курсов
-Задание было немного непонятным нужно было написать новый APIView или переделать существующий, но решил переделать get_queryset существуещего CourseViewSet чтобы отображались только активные курсы и те которые еще не приобретены. Данные которые отображаются основные данные и количество уроков ( get_lessons_count() ).
+Задание было немного непонятным нужно было написать новый APIView или переделать существующий, но решил создать AccessCourseAPIView чтобы отображались только активные курсы и те которые еще не приобретены. Данные которые отображаются основные данные и количество уроков ( get_lessons_count() ).
 ```
 
     #  APIView
@@ -309,8 +309,78 @@ class Course(models.Model):
                 Group.objects.create(course=instance, title=title)
 ```
 
+
+## Доп задание
+
+Доп задание заставило помучеться пришлось некоторые места переписовать. Самое запутанное было вывести процент заполненности групп. Я вообще не понял как в примере вы получили 83 % если всего учеников 10. Может я чего-то не понимаю но у меня получалось 3.3 % и я решил что цифры выбраны рандомно и решил своем понимании задачу. 
+
+```
+    class CourseSerializer(serializers.ModelSerializer):
+        """Список курсов."""
+
+        lessons = MiniLessonSerializer(many=True, read_only=True)
+        lessons_count = serializers.SerializerMethodField(read_only=True)
+        students_count = serializers.SerializerMethodField(read_only=True)
+        groups_filled_percent = serializers.SerializerMethodField(read_only=True)
+        demand_course_percent = serializers.SerializerMethodField(read_only=True)
+
+        def get_lessons_count(self, obj):
+            """Количество уроков в курсе."""
+            return obj.lessons.count()
+
+        def get_students_count(self, obj):
+            """Общее количество студентов на курсе."""
+            return obj.subscriptions.count()
+        
+        def get_groups_filled_percent(self, obj):
+            """Процент заполнения групп, если в группе максимум 30 чел.."""
+            stu_count = obj.subscriptions.count()
+            avg_stu_per = (stu_count / 10) * 100
+            return round(avg_stu_per / 30, 2)
+            
+
+        def get_demand_course_percent(self, obj):
+            """Процент приобретения курса."""
+            students_count = obj.subscriptions.count()
+            users_count = User.objects.count()
+            return round((students_count*100) / users_count, 2)
+
+        class Meta:
+            model = Course
+            fields = (
+                'id',
+                'author',
+                'title',
+                'start_date',
+                'price',
+                'lessons_count',
+                'lessons',
+                'demand_course_percent',
+                'students_count',
+                'groups_filled_percent',
+            )
+        
+    class GroupSerializer(serializers.ModelSerializer):
+        """Список групп."""
+
+        course = serializers.StringRelatedField(read_only=True)
+        students = StudentSerializer(many=True, read_only=True)
+
+        class Meta:
+            model = Group
+            fields = (
+                'title',
+                'course',
+                'students'
+            )
+
+```
+
 ### __Технологии__
 * [Python 3.10.12](https://www.python.org/doc/)
 * [Django 4.2.10](https://docs.djangoproject.com/en/4.2/)
 * [Django REST Framework  3.14.0](https://www.django-rest-framework.org/)
 * [Djoser  2.2.0](https://djoser.readthedocs.io/en/latest/getting_started.html)
+
+
+

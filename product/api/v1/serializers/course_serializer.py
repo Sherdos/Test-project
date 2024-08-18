@@ -42,18 +42,22 @@ class StudentSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
-            'balance',
         )
 
 
 class GroupSerializer(serializers.ModelSerializer):
     """Список групп."""
 
-    # TODO Доп. задание
+    course = serializers.StringRelatedField(read_only=True)
+    students = StudentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Group
-        fields = '__all__'
+        fields = (
+            'title',
+            'course',
+            'students'
+        )
 
 
 
@@ -93,15 +97,20 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_students_count(self, obj):
         """Общее количество студентов на курсе."""
-        # TODO Доп. задание
-
+        return obj.subscriptions.count()
+    
     def get_groups_filled_percent(self, obj):
         """Процент заполнения групп, если в группе максимум 30 чел.."""
-        # TODO Доп. задание
+        stu_count = obj.subscriptions.count()
+        avg_stu_per = (stu_count / 10) * 100
+        return round(avg_stu_per / 30, 2)
+        
 
     def get_demand_course_percent(self, obj):
         """Процент приобретения курса."""
-        # TODO Доп. задание
+        students_count = obj.subscriptions.count()
+        users_count = User.objects.count()
+        return round((students_count*100) / users_count, 2)
 
     class Meta:
         model = Course
@@ -126,4 +135,23 @@ class CreateCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
+        
 
+class AccessCourseSerializer(serializers.ModelSerializer):
+    
+    lessons_count = serializers.SerializerMethodField(read_only=True)
+    
+    def get_lessons_count(self, obj):
+        """Количество уроков в курсе."""
+        return obj.lessons.count()
+    
+    class Meta:
+        model = Course
+        fields = (
+            'id',
+            'author',
+            'title',
+            'start_date',
+            'price',
+            'lessons_count',
+        )
